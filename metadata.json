@@ -1,0 +1,10 @@
+{
+  "name": "Remix Remix Kove 800X GT - Motorcycle MirrorLink Hub",
+  "description": "High-contrast motorcycle TFT dashboard mirroring, Smart View casting manager, GPS navigation, and handlebar glove telemetry for Samsung Galaxy S23 and KOVE 800X GT.",
+  "requestFramePermissions": [
+    "geolocation"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    background-color: #050811;
+    color: #f1f5f9;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Custom motorcycle TFT display glow and styling */
+.tft-bezel {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 20px 40px -15px rgba(0, 0, 0, 0.9), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+}
+
+.tft-screen-glare {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, transparent 40%, rgba(255, 255, 255, 0.01) 100%);
+}
+
+.tft-gauge-text {
+  font-family: 'JetBrains Mono', monospace;
+  font-feature-settings: 'tnum' 1;
+}
+
+/* Custom scrollbars for glove navigation */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #090e1a;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+/* Subtle turn indicator flash animation */
+@keyframes turnSignalBlink {
+  0%, 100% { opacity: 0.15; }
+  50% { opacity: 1; filter: drop-shadow(0 0 8px #10b981); }
+}
+
+.animate-turn-signal {
+  animation: turnSignalBlink 0.75s infinite ease-in-out;
+}
