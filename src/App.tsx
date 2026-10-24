@@ -14,13 +14,13 @@ import {
   IncomingMessage,
   ActiveTab,
   ScreenMode,
-  MirroringConnectionState
+  MirroringConnectionState,
+  AndroidBrand,
+  ColoveModel
 } from './types';
 import {
   INITIAL_TELEMETRY,
   SAMPLE_PLAYLIST,
-  SAMPLE_POIS,
-  DEFAULT_ROUTE,
   calculateGear,
   estimateFuelRange,
   calculateDistanceToEmpty,
@@ -28,9 +28,10 @@ import {
   generateCustomRoute,
   calculateLeanFromDeviceOrientation
 } from './utils/telemetry';
+import { GREECE_PRIMARY_ROUTE, GREECE_POIS } from './utils/greeceRoutes';
 import { voiceGuide } from './utils/voiceGuide';
 import { TftCockpit } from './components/TftCockpit';
-import { SamsungS23Device } from './components/SamsungS23Device';
+import { AndroidPhoneDevice } from './components/AndroidPhoneDevice';
 import { HandlebarControls } from './components/HandlebarControls';
 import { ConnectionGuideModal } from './components/ConnectionGuideModal';
 import {
@@ -49,7 +50,10 @@ import {
   AlertTriangle,
   RotateCcw,
   Sparkles,
-  Maximize2
+  Maximize2,
+  Volume2,
+  VolumeX,
+  MapPin
 } from 'lucide-react';
 
 export default function App() {
@@ -58,16 +62,17 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('nav');
   const [screenMode, setScreenMode] = useState<ScreenMode>('portrait_rally');
   const [isPairingGuideOpen, setIsPairingGuideOpen] = useState(false);
+  const [quotaExceeded, setQuotaExceeded] = useState(false);
 
   // 2. Motorcycle Telemetry State
   const [telemetry, setTelemetry] = useState<MotorcycleTelemetry>(INITIAL_TELEMETRY);
   const [isRiding, setIsRiding] = useState(false);
   const [rideProgressPercent, setRideProgressPercent] = useState(15);
 
-  // 3. Navigation State
-  const [route, setRoute] = useState<RouteInfo>(DEFAULT_ROUTE);
-  const [pois, setPois] = useState<PointOfInterest[]>(SAMPLE_POIS);
-  const [selectedPoi, setSelectedPoi] = useState<PointOfInterest | null>(null);
+  // 3. Navigation State (All Greece Google Maps Network)
+  const [route, setRoute] = useState<RouteInfo>(GREECE_PRIMARY_ROUTE);
+  const [pois, setPois] = useState<PointOfInterest[]>(GREECE_POIS);
+  const [selectedPoi, setSelectedPoi] = useState<PointOfInterest | null>(GREECE_POIS[0]);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
 
   // 4. Music Playback State
@@ -88,9 +93,9 @@ export default function App() {
   const [messages, setMessages] = useState<IncomingMessage[]>([
     {
       id: 'msg-1',
-      sender: 'Marco (Kove Riding Club)',
+      sender: 'Nikos (Hellas Moto Tour Club)',
       app: 'WhatsApp',
-      text: 'We are taking the Stelvio east ramp hairpin pass in 15 mins. Meet at the summit cafe!',
+      text: 'We are taking Katara Pass switchbacks at 1,705m. Weather is clear, tarmac is dry! Meet at Metsovo summit cafe.',
       timestamp: '14:25',
       isRead: false
     },
@@ -98,27 +103,33 @@ export default function App() {
       id: 'msg-2',
       sender: 'Elena Vance',
       app: 'SMS',
-      text: 'How is the weather on the pass? Remember to check rear tire pressure.',
+      text: 'How is the front tire pressure? Keep it around 33.4 PSI for sharp alpine hairpins.',
       timestamp: '14:18',
       isRead: true
     },
     {
       id: 'msg-3',
-      sender: 'Alpine Moto Rescue',
+      sender: 'Greek Alpine Moto Rescue',
       app: 'Telegram',
-      text: 'Notice: High pass road surface clean and dry. No snow reported at 2,757m summit.',
+      text: 'Notice: Pindus mountain road surface clean and open. No snow reported at Katara summit.',
       timestamp: '13:50',
       isRead: true
     }
   ]);
 
-  // 6. Mirroring Connection State
+  // 6. Universal Android Mirroring Connection State (Colove 800X GT / Pro / Rally)
   const [mirroringState, setMirroringState] = useState<MirroringConnectionState>({
     isConnected: true,
     isPairing: false,
+    phoneBrand: 'Samsung',
+    phoneModel: 'Galaxy S23 Ultra (SM-S918B)',
+    osName: 'One UI 6.1 (Android 14)',
+    osVersion: 'Android 14 / One UI 6.1',
+    coloveBikeModel: 'Colove 800X GT',
     protocol: 'Samsung Smart View',
+    latencyMode: 'low_latency_60fps',
     s23Model: 'Samsung Galaxy S23 Ultra (SM-S918B)',
-    wifiSsid: 'KOVE-800X-GT_5G_62A',
+    wifiSsid: 'COLOVE-800X-GT_5G_62A',
     wifiFrequencyGhz: 5.8,
     wifiSignalDbm: -42,
     bluetoothConnected: true,
@@ -133,6 +144,13 @@ export default function App() {
     voiceGuidanceEnabled: true,
     voiceGuidanceVolume: 0.9
   });
+
+  // Listener for Google Maps quota exceeded event
+  useEffect(() => {
+    const handleQuota = () => setQuotaExceeded(true);
+    window.addEventListener('gmp-quota-exceeded', handleQuota);
+    return () => window.removeEventListener('gmp-quota-exceeded', handleQuota);
+  }, []);
 
   // 7. Track interval timers for ride simulation & music playback
   useEffect(() => {
@@ -237,13 +255,14 @@ export default function App() {
     return () => window.removeEventListener('deviceorientation', handleOrientation);
   }, [screenMode]);
 
-  // Voice Guidance Actions
+  // Voice Guidance Actions (Helmet Intercom Turn-by-Turn Navigation)
   const handleToggleVoice = () => {
     const nextVal = !voiceEnabled;
     setVoiceEnabled(nextVal);
     voiceGuide.setEnabled(nextVal);
     if (nextVal) {
-      voiceGuide.speak('Helmet voice guidance activated');
+      voiceGuide.playTurnChime();
+      voiceGuide.speak('Helmet voice guidance connected to Colove 800X GT');
     }
   };
 
@@ -496,10 +515,10 @@ export default function App() {
         {/* Zone 1: Single text element wordmark */}
         <div className="flex items-center gap-2 whitespace-nowrap shrink-0">
           <span className="text-base sm:text-lg font-black tracking-tight text-white font-mono">
-            KOVE <span className="text-emerald-400">800X GT</span>
+            COLOVE / KOVE <span className="text-emerald-400">800X GT</span>
           </span>
           <span className="text-slate-600">/</span>
-          <span className="text-xs font-semibold text-slate-300">MotoCast Hub</span>
+          <span className="text-xs font-semibold text-slate-300">MotoCast Hub &middot; Greece GPS</span>
         </div>
 
         {/* Zone 2: 4 Clean single-line text links */}
@@ -518,7 +537,7 @@ export default function App() {
               activeView === 'split' ? 'text-emerald-400 font-bold' : 'hover:text-slate-200'
             }`}
           >
-            Cockpit + Samsung S23
+            Cockpit + Android Phone
           </button>
           <button
             onClick={() => setActiveView('phone')}
@@ -526,22 +545,37 @@ export default function App() {
               activeView === 'phone' ? 'text-emerald-400 font-bold' : 'hover:text-slate-200'
             }`}
           >
-            Samsung Phone View
+            Android Phone View
           </button>
           <button
             onClick={() => setIsPairingGuideOpen(true)}
             className="text-slate-400 hover:text-cyan-400 transition-colors whitespace-nowrap shrink-0 flex items-center gap-1.5"
           >
+            <HelpCircle className="w-3.5 h-3.5 text-cyan-400" />
             <span>Pairing Guide</span>
           </button>
         </nav>
 
-        {/* Zone 3: 1 Primary Action */}
-        <div className="flex items-center gap-3 shrink-0">
+        {/* Zone 3: Primary Action & Helmet Voice Controls (Alexa Removed) */}
+        <div className="flex items-center gap-2.5 shrink-0">
+          <button
+            onClick={handleToggleVoice}
+            title={voiceEnabled ? 'Mute Helmet Voice Guidance' : 'Enable Helmet Voice Guidance'}
+            className={`p-2 rounded-xl border text-xs font-bold transition-all shadow-md flex items-center gap-1.5 ${
+              voiceEnabled
+                ? 'bg-slate-900 border-emerald-500/40 text-emerald-300'
+                : 'bg-slate-900 border-slate-700 text-slate-500'
+            }`}
+          >
+            {voiceEnabled ? <Volume2 className="w-4 h-4 text-emerald-400" /> : <VolumeX className="w-4 h-4" />}
+            <span className="hidden sm:inline font-mono text-[11px]">{voiceEnabled ? 'Voice ON' : 'Muted'}</span>
+          </button>
+
           <button
             onClick={() => {
               setIsRiding(!isRiding);
               if (!isRiding) {
+                voiceGuide.playTurnChime();
                 voiceGuide.speak('Motorcycle ride simulation active. Navigation live.');
               }
             }}
@@ -557,19 +591,31 @@ export default function App() {
         </div>
       </header>
 
+      {/* Quota Exceeded Non-Intrusive Notification Banner */}
+      {quotaExceeded && (
+        <div className="bg-amber-950/80 border-b border-amber-500/50 text-amber-200 px-4 py-2.5 text-xs text-center flex items-center justify-center gap-2">
+          <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+          <span>Google Maps API request limit reached. Map features will continue with high-precision offline cache.</span>
+        </div>
+      )}
+
       {/* 2. MAIN WORKSPACE CONTENT */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-6 lg:p-8 space-y-6">
         {/* Quick Viewport Mode Switcher & Mirroring Status Strip */}
         <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-900/60 border border-slate-800/80 rounded-2xl px-4 py-2.5">
-          <div className="flex items-center gap-3 text-xs">
+          <div className="flex items-center gap-3 text-xs flex-wrap">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-500/50" />
             <span className="font-bold text-slate-200">
-              Samsung Galaxy S23 &harr; KOVE 800X GT 7" TFT
+              Universal Android &harr; COLOVE / KOVE 800X GT 7" TFT
             </span>
             <span className="text-slate-500">·</span>
-            <span className="text-slate-400 font-mono">Wi-Fi Direct 5.8 GHz Low Latency</span>
-            <span className="text-slate-500 hidden sm:inline">·</span>
-            <span className="text-emerald-400 font-mono hidden sm:inline">60 FPS</span>
+            <span className="text-slate-400 font-mono">Wi-Fi Direct 5.8 GHz</span>
+            <span className="text-slate-500">·</span>
+            <span className="text-emerald-400 font-mono">60 FPS</span>
+            <span className="text-slate-500">·</span>
+            <span className="text-amber-300 font-mono font-bold">
+              TPMS: {telemetry.tpmsFront.pressurePsi.toFixed(1)} / {telemetry.tpmsRear.pressurePsi.toFixed(1)} PSI
+            </span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -603,7 +649,7 @@ export default function App() {
                     : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
-                Samsung S23 Only
+                Android Phone Only
               </button>
             </div>
           </div>
@@ -665,17 +711,26 @@ export default function App() {
             </div>
           )}
 
-          {/* RIGHT: SAMSUNG GALAXY S23 + HANDLEBAR SWITCHGEAR CONTROLS */}
+          {/* RIGHT: UNIVERSAL ANDROID DEVICE + HANDLEBAR SWITCHGEAR CONTROLS */}
           {(activeView === 'split' || activeView === 'phone') && (
             <div className={activeView === 'split' ? 'lg:col-span-4 space-y-6' : 'w-full space-y-6'}>
-              {/* Samsung S23 Device Model */}
-              <SamsungS23Device
+              {/* Universal Android Device Model (Samsung, Pixel, Xiaomi, OnePlus, Moto) */}
+              <AndroidPhoneDevice
                 mirroringState={mirroringState}
                 onToggleConnection={() =>
                   setMirroringState((prev) => ({ ...prev, isConnected: !prev.isConnected }))
                 }
+                onSelectBrand={(brand) =>
+                  setMirroringState((prev) => ({ ...prev, phoneBrand: brand }))
+                }
                 onSelectProtocol={(proto) =>
                   setMirroringState((prev) => ({ ...prev, protocol: proto }))
+                }
+                onSelectColoveModel={(coloveBikeModel) =>
+                  setMirroringState((prev) => ({ ...prev, coloveBikeModel }))
+                }
+                onSelectLatencyMode={(latencyMode) =>
+                  setMirroringState((prev) => ({ ...prev, latencyMode }))
                 }
                 onToggleKeepAwake={() =>
                   setMirroringState((prev) => ({ ...prev, keepScreenAwake: !prev.keepScreenAwake }))
@@ -697,6 +752,7 @@ export default function App() {
                 isRiding={isRiding}
                 onToggleRideSimulation={() => setIsRiding(!isRiding)}
                 onOpenPairingGuide={() => setIsPairingGuideOpen(true)}
+                telemetry={telemetry}
               />
 
               {/* Left Handlebar Switchgear Control Pad */}
@@ -716,15 +772,15 @@ export default function App() {
           )}
         </div>
 
-        {/* 4. MOTORCYCLE HARDWARE & SPECIFICATION SHOWCASE (Kove 800X GT Authentic Context) */}
+        {/* 4. MOTORCYCLE HARDWARE & SPECIFICATION SHOWCASE (Colove / Kove 800X GT Authentic Context) */}
         <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-slate-800 pb-5">
             <div>
               <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-                KOVE 800X GT &middot; High-Performance Adventure Touring
+                COLOVE / KOVE 800X &middot; High-Performance Adventure Touring
               </h2>
               <p className="text-sm text-slate-400 mt-1">
-                799cc DOHC Parallel-Twin &middot; 71 kW (96.5 HP) @ 9,000 RPM &middot; 183 kg dry &middot; 7-inch TFT screen casting with Samsung Smart View
+                799cc DOHC Parallel-Twin &middot; 71 kW (96.5 HP) @ 9,000 RPM &middot; 183 kg dry &middot; 7-inch TFT screen casting with all Android phones (Smart View, Miracast, HyperOS, OxygenOS, Ready For)
               </p>
             </div>
 
@@ -743,12 +799,12 @@ export default function App() {
             <div className="relative rounded-2xl overflow-hidden border border-slate-800 group shadow-xl bg-slate-950">
               <img
                 src="/src/assets/images/kove_800x_gt_hero_1792815739012.jpg"
-                alt="KOVE 800X GT Adventure Motorcycle on Alpine Mountain Pass"
+                alt="COLOVE / KOVE 800X GT Adventure Motorcycle on Greek Alpine Mountain Pass"
                 referrerPolicy="no-referrer"
                 className="w-full h-64 sm:h-80 object-cover group-hover:scale-105 transition-transform duration-500"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent flex flex-col justify-end p-5">
-                <div className="text-base font-extrabold text-white">KOVE 800X GT Alpine Edition</div>
+                <div className="text-base font-extrabold text-white">COLOVE / KOVE 800X GT Alpine Edition</div>
                 <div className="text-xs text-slate-300">
                   Long-range 19L fuel tank, Brembo radial calipers, adjustable upside-down front forks, 21" front & 18" rear spoked wheels.
                 </div>
@@ -774,21 +830,23 @@ export default function App() {
         </div>
       </main>
 
-      {/* 5. FOOTER (Compliant with Anti-Slop, No fake telemetry tickers) */}
+      {/* 5. FOOTER */}
       <footer className="border-t border-slate-800/80 bg-slate-950 px-4 sm:px-8 py-5 text-xs text-slate-500">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-slate-400">KOVE 800X GT MotoCast Hub</span>
+            <span className="font-bold text-slate-400">COLOVE / KOVE 800X GT MotoCast Hub</span>
             <span>&middot;</span>
-            <span>Samsung Galaxy S23 Smart View Projection</span>
+            <span>All Android Phones MirrorLink (Samsung, Pixel, Xiaomi, OnePlus, Motorola)</span>
           </div>
 
           <div className="flex items-center gap-4 text-[11px] text-slate-400">
-            <span>Passo dello Stelvio Route Active</span>
+            <span>Katara Pass (1,705m) Greece Route Active</span>
             <span>&middot;</span>
             <span>A2DP Helmet Audio</span>
             <span>&middot;</span>
-            <span>TPMS OK</span>
+            <span className="text-emerald-400 font-mono font-semibold">
+              TPMS: {telemetry.tpmsFront.pressurePsi.toFixed(1)} / {telemetry.tpmsRear.pressurePsi.toFixed(1)} PSI
+            </span>
           </div>
         </div>
       </footer>

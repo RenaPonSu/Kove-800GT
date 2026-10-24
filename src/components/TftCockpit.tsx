@@ -10,15 +10,16 @@ import {
   ActiveTab,
   ScreenMode
 } from '../types';
-import { InteractiveMap } from './InteractiveMap';
 import { NavigationBanner } from './NavigationBanner';
 import { MusicPlayerView } from './MusicPlayerView';
 import { CallAndMessagesView } from './CallAndMessagesView';
+import { GreeceGoogleMap } from './GreeceGoogleMap';
 import {
   Navigation,
   Music,
   Phone,
   Gauge,
+  Cast,
   Sliders,
   AlertTriangle,
   Flame,
@@ -149,16 +150,16 @@ export const TftCockpit: React.FC<TftCockpitProps> = ({
       {/* Matte Screen Glare Overlay */}
       <div className="absolute inset-0 pointer-events-none tft-screen-glare z-30" />
 
-      {/* 1. TOP STATUS BAR (KOVE TFT HEADER) */}
+      {/* 1. TOP STATUS BAR (COLOVE / KOVE TFT HEADER) */}
       <div className="bg-slate-900/95 border-b border-slate-800/80 rounded-t-2xl px-3 py-2 flex items-center justify-between gap-2 text-xs">
         {/* Brand & Bike Model */}
         <div className="flex items-center gap-2">
           <span className="font-black tracking-tight text-white font-mono text-sm">
-            KOVE <span className="text-emerald-400">800X GT</span>
+            COLOVE / KOVE <span className="text-emerald-400">800X GT</span>
           </span>
           <span className="text-slate-600">|</span>
-          <span className="text-[11px] font-semibold text-slate-400 uppercase">
-            Samsung S23 Cast
+          <span className="text-[11px] font-semibold text-cyan-400 uppercase font-mono">
+            Android MirrorCast 5.8G
           </span>
         </div>
 
@@ -428,7 +429,20 @@ export const TftCockpit: React.FC<TftCockpitProps> = ({
           }`}
         >
           <Gauge className="w-4 h-4 shrink-0" />
-          <span>TPMS & DATA</span>
+          <span>TPMS</span>
+        </button>
+
+        {/* Colove 800X Universal Android Cast Tab */}
+        <button
+          onClick={() => onSelectTab('android')}
+          className={`flex-1 min-w-[75px] min-h-[44px] px-2 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 whitespace-nowrap ${
+            activeTab === 'android'
+              ? 'bg-cyan-500 text-slate-950 shadow-lg shadow-cyan-500/40 font-extrabold'
+              : 'text-cyan-400 hover:text-white hover:bg-slate-800/50'
+          }`}
+        >
+          <Cast className="w-4 h-4 shrink-0" />
+          <span>CAST</span>
         </button>
       </div>
 
@@ -582,11 +596,10 @@ export const TftCockpit: React.FC<TftCockpitProps> = ({
               )}
             </div>
 
-            {/* Interactive Vector Map Canvas */}
-            <div className="h-[340px] sm:h-[400px] w-full">
-              <InteractiveMap
+            {/* All Greece Google Maps Navigation Canvas */}
+            <div className="h-[380px] sm:h-[430px] w-full rounded-2xl overflow-hidden border border-slate-800 shadow-xl">
+              <GreeceGoogleMap
                 route={route}
-                pois={filteredPois}
                 selectedPoi={selectedPoi}
                 onSelectPoi={onSelectPoi}
                 onSetDestination={onSetDestination}
@@ -636,35 +649,46 @@ export const TftCockpit: React.FC<TftCockpitProps> = ({
         {/* TAB 4: DETAILED KOVE 800X GT TPMS & TELEMETRY */}
         {activeTab === 'telemetry' && (
           <div className="space-y-3 animate-in fade-in duration-200">
-            {/* TPMS Front & Rear Tire Health */}
+            {/* TPMS Front & Rear Tire Health - Pounds per Square Inch (PSI) */}
             <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4">
               <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center justify-between">
-                <span>TPMS Tire Pressure & Temperature</span>
-                <span className="text-[11px] text-emerald-400 font-mono">Sensors Active</span>
+                <span className="flex items-center gap-2">
+                  <Gauge className="w-4 h-4 text-emerald-400" />
+                  <span>TPMS Tire Pressure (PSI - Pounds per Square Inch)</span>
+                </span>
+                <span className="text-[11px] text-emerald-400 font-mono bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded">
+                  Dual Rim Transmitters OK
+                </span>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 {/* Front Tire */}
-                <div className="bg-slate-950 border border-slate-800/80 rounded-xl p-3 text-center">
-                  <div className="text-[10px] font-bold text-slate-400 uppercase">FRONT (21" Wheel)</div>
-                  <div className="text-3xl font-extrabold font-mono text-emerald-400 my-1">
-                    {telemetry.tpmsFront.pressureBar.toFixed(1)}{' '}
-                    <span className="text-xs text-slate-400">bar</span>
+                <div className="bg-slate-950 border border-slate-800/80 rounded-xl p-3.5 text-center">
+                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    FRONT (21" Spoked Wheel)
                   </div>
-                  <div className="text-xs text-slate-400 font-mono">
-                    {telemetry.tpmsFront.pressurePsi} PSI · {telemetry.tpmsFront.tempC}°C
+                  <div className="text-3xl sm:text-4xl font-black font-mono text-emerald-400 my-1">
+                    {telemetry.tpmsFront.pressurePsi.toFixed(1)}{' '}
+                    <span className="text-sm font-extrabold text-emerald-300">PSI</span>
+                  </div>
+                  <div className="text-[10px] text-slate-400 font-medium">Pounds per Square Inch</div>
+                  <div className="text-xs text-slate-500 font-mono mt-1 pt-1 border-t border-slate-800/60">
+                    {telemetry.tpmsFront.pressureBar.toFixed(2)} bar · {telemetry.tpmsFront.tempC}°C
                   </div>
                 </div>
 
                 {/* Rear Tire */}
-                <div className="bg-slate-950 border border-slate-800/80 rounded-xl p-3 text-center">
-                  <div className="text-[10px] font-bold text-slate-400 uppercase">REAR (18" Wheel)</div>
-                  <div className="text-3xl font-extrabold font-mono text-emerald-400 my-1">
-                    {telemetry.tpmsRear.pressureBar.toFixed(1)}{' '}
-                    <span className="text-xs text-slate-400">bar</span>
+                <div className="bg-slate-950 border border-slate-800/80 rounded-xl p-3.5 text-center">
+                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    REAR (18" Spoked Wheel)
                   </div>
-                  <div className="text-xs text-slate-400 font-mono">
-                    {telemetry.tpmsRear.pressurePsi} PSI · {telemetry.tpmsRear.tempC}°C
+                  <div className="text-3xl sm:text-4xl font-black font-mono text-emerald-400 my-1">
+                    {telemetry.tpmsRear.pressurePsi.toFixed(1)}{' '}
+                    <span className="text-sm font-extrabold text-emerald-300">PSI</span>
+                  </div>
+                  <div className="text-[10px] text-slate-400 font-medium">Pounds per Square Inch</div>
+                  <div className="text-xs text-slate-500 font-mono mt-1 pt-1 border-t border-slate-800/60">
+                    {telemetry.tpmsRear.pressureBar.toFixed(2)} bar · {telemetry.tpmsRear.tempC}°C
                   </div>
                 </div>
               </div>
@@ -863,21 +887,111 @@ export const TftCockpit: React.FC<TftCockpitProps> = ({
             </div>
           </div>
         )}
+
+        {/* TAB 5: COLOVE 800X UNIVERSAL ANDROID WIRELESS PROJECTION */}
+        {activeTab === 'android' && (
+          <div className="space-y-4 animate-in fade-in duration-200">
+            {/* Mirroring Connection Header Card */}
+            <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-200">
+                    COLOVE 800X GT &middot; Android Wireless MirrorLink
+                  </span>
+                </div>
+                <span className="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-950/70 border border-emerald-500/30 px-2 py-0.5 rounded">
+                  60 FPS &middot; Low Latency
+                </span>
+              </div>
+
+              {/* Protocol & Device Matrix */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs">
+                <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                  <div className="text-[10px] text-slate-500 uppercase font-semibold">Active Protocol</div>
+                  <div className="text-xs font-bold font-mono text-cyan-300 mt-1 truncate">
+                    Smart View / Cast
+                  </div>
+                </div>
+                <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                  <div className="text-[10px] text-slate-500 uppercase font-semibold">Wi-Fi Direct</div>
+                  <div className="text-xs font-bold font-mono text-emerald-400 mt-1">
+                    5.8 GHz &middot; 802.11ac
+                  </div>
+                </div>
+                <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                  <div className="text-[10px] text-slate-500 uppercase font-semibold">Tire Pressure</div>
+                  <div className="text-xs font-bold font-mono text-amber-300 mt-1">
+                    {telemetry.tpmsFront.pressurePsi.toFixed(1)} / {telemetry.tpmsRear.pressurePsi.toFixed(1)} PSI
+                  </div>
+                </div>
+                <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                  <div className="text-[10px] text-slate-500 uppercase font-semibold">Glove Control</div>
+                  <div className="text-xs font-bold font-mono text-slate-200 mt-1">
+                    Handlebar D-Pad
+                  </div>
+                </div>
+              </div>
+
+              {/* Supported Android Brands strip */}
+              <div className="pt-2 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-400">
+                <div className="flex items-center gap-1.5 font-medium">
+                  <Smartphone className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                  <span>Compatible with Samsung, Google Pixel, Xiaomi, OnePlus, Motorola & Universal Android</span>
+                </div>
+                <span className="text-[10px] font-mono text-slate-500">Colove MotoCast Engine v2.4</span>
+              </div>
+            </div>
+
+            {/* Live Navigation & Cockpit Quick Glance */}
+            <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-3">
+              <div className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
+                <span>Real-Time Colove 800X Telemetry Glance</span>
+                <span className="text-emerald-400 font-mono text-[11px]">TPMS Primary: PSI</span>
+              </div>
+              <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                  <div className="text-[10px] text-slate-500 uppercase">DTE Fuel Range</div>
+                  <div className="text-base font-bold font-mono text-cyan-300 mt-0.5">
+                    {telemetry.distanceToEmptyKm} km
+                  </div>
+                </div>
+                <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                  <div className="text-[10px] text-slate-500 uppercase">Front / Rear TPMS</div>
+                  <div className="text-base font-bold font-mono text-emerald-400 mt-0.5">
+                    {telemetry.tpmsFront.pressurePsi.toFixed(1)} / {telemetry.tpmsRear.pressurePsi.toFixed(1)} PSI
+                  </div>
+                  <div className="text-[9px] text-slate-500">Pounds per Square Inch</div>
+                </div>
+                <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                  <div className="text-[10px] text-slate-500 uppercase">Next Maneuver</div>
+                  <div className="text-xs font-bold text-slate-200 mt-1 truncate">
+                    {route.currentManeuver.instruction}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 6. BOTTOM SYSTEM GLANCE BAR */}
-      <div className="bg-slate-900/90 border-t border-slate-800 px-3 py-2 rounded-b-2xl flex items-center justify-between text-[11px] text-slate-400">
+      <div className="bg-slate-900/90 border-t border-slate-800 px-3 py-2 rounded-b-2xl flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-400">
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-emerald-400" />
-          <span className="font-semibold text-slate-300">Galaxy S23 Connected</span>
+          <span className="font-semibold text-slate-300">Android Phone Screencast</span>
           <span>·</span>
-          <span className="font-mono">Wi-Fi 5.8GHz</span>
+          <span className="font-mono">Wi-Fi Direct 5.8GHz</span>
+          <span>·</span>
+          <span className="text-emerald-400 font-mono">60 FPS</span>
         </div>
 
-        <div className="flex items-center gap-2 font-mono">
-          <span>Battery 84%</span>
+        <div className="flex items-center gap-3 font-mono">
+          <span className="text-slate-300">
+            TPMS: <strong className="text-emerald-400">{telemetry.tpmsFront.pressurePsi.toFixed(1)}</strong> / <strong className="text-emerald-400">{telemetry.tpmsRear.pressurePsi.toFixed(1)}</strong> PSI
+          </span>
           <span>·</span>
-          <span>Phone 31°C Nominal</span>
+          <span>Battery 84%</span>
         </div>
       </div>
     </div>

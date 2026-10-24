@@ -79,26 +79,28 @@ export const NavigationBanner: React.FC<NavigationBannerProps> = ({
           </div>
         </div>
 
-        {/* Voice Guidance & Repeat Trigger */}
+        {/* Helmet Voice Guidance & Repeat Trigger */}
         <div className="flex items-center gap-1.5 shrink-0">
           <button
             onClick={onRepeatVoice}
-            title="Read turn instruction to helmet"
-            aria-label="Repeat voice guidance to helmet"
-            className="w-11 h-11 bg-slate-800/80 hover:bg-slate-700 active:scale-95 border border-slate-700/80 text-emerald-400 rounded-xl flex items-center justify-center shadow transition-all"
+            title="Repeat voice turn instruction to helmet"
+            aria-label="Repeat voice guidance"
+            className="w-11 h-11 bg-slate-800/80 hover:bg-slate-700 active:scale-95 border border-slate-700 text-emerald-400 rounded-xl flex items-center justify-center shadow-md transition-all"
           >
             <Volume2 className="w-5 h-5" />
           </button>
+
           <button
             onClick={onToggleVoice}
             aria-label={voiceEnabled ? 'Mute helmet voice guidance' : 'Enable helmet voice guidance'}
+            title={voiceEnabled ? 'Mute helmet voice guidance' : 'Enable helmet voice guidance'}
             className={`w-11 h-11 border rounded-xl flex items-center justify-center active:scale-95 transition-all ${
               voiceEnabled
-                ? 'bg-emerald-950/40 border-emerald-800/80 text-emerald-400'
+                ? 'bg-emerald-950/40 border-emerald-700/60 text-emerald-400 shadow-sm shadow-emerald-500/20'
                 : 'bg-slate-800/60 border-slate-700/60 text-slate-500'
             }`}
           >
-            {voiceEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+            {voiceEnabled ? <Volume2 className="w-5 h-5 text-emerald-400" /> : <VolumeX className="w-5 h-5" />}
           </button>
         </div>
       </div>

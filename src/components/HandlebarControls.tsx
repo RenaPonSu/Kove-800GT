@@ -70,7 +70,7 @@ export const HandlebarControls: React.FC<HandlebarControlsProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onNavigateUp, onNavigateDown, onSelect, onBack]);
 
-  const tabs: ActiveTab[] = ['nav', 'music', 'comms', 'telemetry'];
+  const tabs: ActiveTab[] = ['nav', 'music', 'comms', 'telemetry', 'android'];
 
   return (
     <div className="w-full bg-slate-900/90 border border-slate-800 rounded-3xl p-4 shadow-xl select-none">
@@ -215,7 +215,8 @@ export const HandlebarControls: React.FC<HandlebarControlsProps> = ({
 
             <button
               onClick={onTriggerVoicePtt}
-              title="Voice Guidance Prompt to Helmet"
+              title="Voice Guidance Prompt to Helmet Intercom"
+              aria-label="Helmet Voice PTT"
               className="py-2.5 px-3 bg-slate-950/80 hover:bg-slate-850 active:scale-95 border border-slate-800 text-emerald-400 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all"
             >
               <Volume2 className="w-4 h-4" />

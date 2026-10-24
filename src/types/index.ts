@@ -1,5 +1,5 @@
 export type ScreenMode = 'portrait_rally' | 'landscape_touring';
-export type ActiveTab = 'nav' | 'music' | 'comms' | 'telemetry' | 'settings';
+export type ActiveTab = 'nav' | 'music' | 'comms' | 'telemetry' | 'android' | 'settings';
 export type RideMode = 'Touring' | 'Sport' | 'Eco' | 'Rally';
 export type AbsMode = 'Road' | 'Off-Road' | 'ABS Off';
 export type TcsMode = 'Level 3' | 'Level 2' | 'Level 1' | 'TCS Off';
@@ -65,6 +65,10 @@ export interface PointOfInterest {
   coordinates: { x: number; y: number }; // normalized 0-100 on map
   address: string;
   description: string;
+  geoLat?: number;
+  geoLng?: number;
+  region?: string;
+  country?: string;
 }
 
 export interface RouteInfo {
@@ -121,11 +125,50 @@ export interface IncomingMessage {
   isRead: boolean;
 }
 
+export type AndroidBrand =
+  | 'Samsung'
+  | 'Google Pixel'
+  | 'Xiaomi / POCO'
+  | 'OnePlus / OPPO'
+  | 'Motorola'
+  | 'Huawei / Honor'
+  | 'Universal Android';
+
+export type ColoveModel = 'Colove 800X GT' | 'Colove 800X Pro' | 'Colove 800X Rally';
+
+export type MirroringProtocol =
+  | 'Samsung Smart View'
+  | 'Google Cast / Miracast'
+  | 'HyperOS Wireless Display'
+  | 'OxygenOS Screencast'
+  | 'Motorola Ready For'
+  | 'Colove MotoCast HD'
+  | 'CarbitLink'
+  | 'MotoPlay';
+
+export interface AndroidPhoneProfile {
+  id: string;
+  brand: AndroidBrand;
+  modelName: string;
+  osName: string;
+  osVersion: string;
+  nativeProtocol: MirroringProtocol;
+  cameraCutout: 'center_hole' | 'left_hole' | 'pill' | 'notch';
+  accentColor: string;
+  pairingTip: string;
+}
+
 export interface MirroringConnectionState {
   isConnected: boolean;
   isPairing: boolean;
-  protocol: 'Samsung Smart View' | 'Kove MotoCast HD' | 'CarbitLink' | 'MotoPlay';
-  s23Model: string;
+  phoneBrand: AndroidBrand;
+  phoneModel: string;
+  osName: string;
+  osVersion: string;
+  coloveBikeModel: ColoveModel;
+  protocol: MirroringProtocol;
+  latencyMode: 'low_latency_60fps' | 'balanced' | 'high_definition';
+  s23Model?: string; // legacy alias
   wifiSsid: string;
   wifiFrequencyGhz: number;
   wifiSignalDbm: number;
